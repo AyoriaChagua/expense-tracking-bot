@@ -1,4 +1,4 @@
-import type { ExtractedReceipt } from "./types";
+import type { NewTransaction } from "./types";
 
 // Every user-facing (Spanish) text lives here.
 export const messages = {
@@ -9,22 +9,26 @@ export const messages = {
   unexpectedError: "⚠️ Ocurrió un error inesperado. Inténtalo de nuevo.",
   notReceipt: "No reconocí un voucher de Yape/Plin.",
   noAmount: "No pude leer el monto, reenvía la captura.",
+  noAppOrDirection: "No pude leer si es Yape/Plin o si es egreso/ingreso, reenvía la captura.",
   notPen: "Solo registro pagos en soles (S/).",
-  testNotSaved: "🧪 Prueba, no guardado:",
+  duplicate: "Este voucher ya estaba registrado.",
+  nothingToUndo: "No hay registros para deshacer.",
+  saved: (tx: NewTransaction) => `✅ ${formatTransaction(tx)}`,
+  undone: (tx: NewTransaction) => `🗑️ Borré: ${formatTransaction(tx)}`,
 };
 
 const APP_LABEL = { yape: "Yape", plin: "Plin" } as const;
 const DIRECTION_LABEL = { expense: "Egreso", income: "Ingreso" } as const;
 
-// occurredAt is 'YYYY-MM-DDTHH:MM' -> '17/11 13:42'
-export function formatReceiptSummary(r: ExtractedReceipt, amount: number, occurredAt: string, description?: string): string {
-  const [date, time] = occurredAt.split("T");
+// -> 'Egreso S/ 25.00 · Yape · Juan P. · 17/11 13:42 · "almuerzo"'
+function formatTransaction(tx: NewTransaction): string {
+  const [date, time] = tx.occurred_at.split(" "); // 'YYYY-MM-DD HH:MM'
   const [, month, day] = date.split("-");
   return [
-    `✅ ${r.direction ? DIRECTION_LABEL[r.direction] : "¿Egreso/Ingreso?"} S/ ${amount.toFixed(2)}`,
-    r.app ? APP_LABEL[r.app] : "¿App?",
-    r.counterparty ?? "—",
+    `${DIRECTION_LABEL[tx.direction]} S/ ${(tx.amount_cents / 100).toFixed(2)}`,
+    APP_LABEL[tx.app],
+    tx.counterparty ?? "—",
     `${day}/${month} ${time}`,
-    ...(description ? [`"${description}"`] : []),
+    ...(tx.description ? [`"${tx.description}"`] : []),
   ].join(" · ");
 }

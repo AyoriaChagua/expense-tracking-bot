@@ -18,3 +18,18 @@ export interface ExtractedReceipt {
   occurredAt: string | null; // 'YYYY-MM-DDTHH:MM', Lima time
   operationId: string | null;
 }
+
+// Row of the transactions table.
+export interface Transaction {
+  id: number;
+  app: "yape" | "plin";
+  direction: "expense" | "income";
+  amount_cents: number;
+  counterparty: string | null;
+  occurred_at: string; // Lima time, 'YYYY-MM-DD HH:MM'
+  operation_id: string | null;
+  description: string | null;
+  created_at: string;
+}
+
+export type NewTransaction = Omit<Transaction, "id" | "created_at">;
