@@ -7,7 +7,8 @@
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "db:migrate:local": "wrangler d1 migrations apply expense-tracking-bot --local",
-    "db:migrate:remote": "wrangler d1 migrations apply expense-tracking-bot --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply expense-tracking-bot --remote",
+    "set-webhook": "node --env-file=.dev.vars scripts/set-webhook.mjs"
   },
   "dependencies": {
     "@google/genai": "^3.6.1",
