@@ -29,7 +29,7 @@ Uso exclusivamente personal (un solo usuario).
 - **Runtime:** Cloudflare Workers (plan Free), TypeScript.
 - **Bot:** grammY con `webhookCallback(bot, "cloudflare-mod")`.
 - **Base de datos:** Cloudflare D1 (SQLite), con migraciones de `wrangler d1 migrations`.
-- **IA:** Gemini API (SDK `@google/genai`), modelo configurable por variable. Por defecto `gemini-2.5-flash-lite`, en tier **pagado** (para que los datos no se usen para entrenar).
+- **IA:** Gemini API (REST con `fetch`, sin SDK), modelo configurable por variable. Por defecto `gemini-3.5-flash-lite`, en tier **pagado** (para que los datos no se usen para entrenar).
 - **Herramientas:** `wrangler` para desarrollo, deploy, secretos y logs (`wrangler tail`).
 - **Entorno de desarrollo:** macOS.
 
@@ -41,7 +41,7 @@ Uso exclusivamente personal (un solo usuario).
 | `TELEGRAM_WEBHOOK_SECRET` | secret | Se valida contra el header `X-Telegram-Bot-Api-Secret-Token` |
 | `GEMINI_API_KEY` | secret | API key de Google AI Studio (con billing activo) |
 | `ALLOWED_CHAT_ID` | secret | Mi chat ID; cualquier otro chat se ignora en silencio |
-| `GEMINI_MODEL` | var | Por defecto `gemini-2.5-flash-lite` |
+| `GEMINI_MODEL` | var | Por defecto `gemini-3.5-flash-lite` |
 
 Para desarrollo local, los secretos van en `.dev.vars`, que debe estar en `.gitignore`.
 
@@ -138,7 +138,7 @@ wrangler.jsonc
 - Obtener mi chat ID, por ejemplo escribiéndole a @userinfobot.
 
 **Fase 1 — Scaffold**
-- Proyecto TypeScript con `wrangler.jsonc`, grammY y `@google/genai`.
+- Proyecto TypeScript con `wrangler.jsonc`, grammY.
 - Crear la base D1 y aplicar la migración `0001_init.sql`.
 
 **Fase 2 — Webhook mínimo**

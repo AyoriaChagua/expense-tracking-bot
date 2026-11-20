@@ -6,3 +6,15 @@ export interface Env {
   GEMINI_API_KEY: string;
   ALLOWED_CHAT_ID: string;
 }
+
+// Shape returned by Gemini; any field may be null when unreadable.
+export interface ExtractedReceipt {
+  isReceipt: boolean;
+  app: "yape" | "plin" | null;
+  direction: "expense" | "income" | null;
+  amount: number | null;
+  currency: string | null;
+  counterparty: string | null;
+  occurredAt: string | null; // 'YYYY-MM-DDTHH:MM', Lima time
+  operationId: string | null;
+}

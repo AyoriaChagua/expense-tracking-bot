@@ -12,7 +12,8 @@ export default {
       return new Response("ok");
     }
     try {
-      await webhookCallback(createBot(env), "cloudflare-mod")(request);
+      // Gemini can exceed grammY's default 10s webhook timeout.
+      await webhookCallback(createBot(env), "cloudflare-mod", "throw", 25_000)(request);
     } catch (err) {
       console.error("webhook error", err);
     }
