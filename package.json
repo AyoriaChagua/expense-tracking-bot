@@ -1,0 +1,21 @@
+{
+  "name": "expense-tracking-bot",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "db:migrate:local": "wrangler d1 migrations apply expense-tracking-bot --local",
+    "db:migrate:remote": "wrangler d1 migrations apply expense-tracking-bot --remote"
+  },
+  "dependencies": {
+    "@google/genai": "^3.6.1",
+    "grammy": "^1.46.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261120.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.166.0"
+  }
+}
