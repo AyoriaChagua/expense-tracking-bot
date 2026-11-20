@@ -1,4 +1,5 @@
-import type { NewTransaction } from "./types";
+import type { Range } from "./dates";
+import type { NewTransaction, Totals } from "./types";
 
 // Every user-facing (Spanish) text lives here.
 export const messages = {
@@ -15,20 +16,34 @@ export const messages = {
   nothingToUndo: "No hay registros para deshacer.",
   saved: (tx: NewTransaction) => `✅ ${formatTransaction(tx)}`,
   undone: (tx: NewTransaction) => `🗑️ Borré: ${formatTransaction(tx)}`,
+  // -> '📊 Semana (16/11 – 20/11)\nEgresos: S/ 51.50 (2)\nIngresos: S/ 5.00 (1)'
+  summary: (range: Range, from: string, to: string, t: Totals) =>
+    [
+      `📊 ${RANGE_LABEL[range]} (${range === "today" ? shortDate(to) : `${shortDate(from)} – ${shortDate(to)}`})`,
+      `Egresos: S/ ${formatSoles(t.expense.cents)} (${t.expense.count})`,
+      `Ingresos: S/ ${formatSoles(t.income.cents)} (${t.income.count})`,
+    ].join("\n"),
 };
 
 const APP_LABEL = { yape: "Yape", plin: "Plin" } as const;
 const DIRECTION_LABEL = { expense: "Egreso", income: "Ingreso" } as const;
+const RANGE_LABEL = { today: "Hoy", week: "Semana", month: "Mes" } as const;
+
+const formatSoles = (cents: number) => (cents / 100).toFixed(2);
+
+// 'YYYY-MM-DD HH:MM' -> '17/11'
+function shortDate(dateTime: string): string {
+  const [, month, day] = dateTime.slice(0, 10).split("-");
+  return `${day}/${month}`;
+}
 
 // -> 'Egreso S/ 25.00 · Yape · Juan P. · 17/11 13:42 · "almuerzo"'
 function formatTransaction(tx: NewTransaction): string {
-  const [date, time] = tx.occurred_at.split(" "); // 'YYYY-MM-DD HH:MM'
-  const [, month, day] = date.split("-");
   return [
-    `${DIRECTION_LABEL[tx.direction]} S/ ${(tx.amount_cents / 100).toFixed(2)}`,
+    `${DIRECTION_LABEL[tx.direction]} S/ ${formatSoles(tx.amount_cents)}`,
     APP_LABEL[tx.app],
     tx.counterparty ?? "—",
-    `${day}/${month} ${time}`,
+    `${shortDate(tx.occurred_at)} ${tx.occurred_at.slice(11)}`,
     ...(tx.description ? [`"${tx.description}"`] : []),
   ].join(" · ");
 }

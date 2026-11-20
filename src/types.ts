@@ -33,3 +33,8 @@ export interface Transaction {
 }
 
 export type NewTransaction = Omit<Transaction, "id" | "created_at">;
+
+export interface Totals {
+  expense: { cents: number; count: number };
+  income: { cents: number; count: number };
+}

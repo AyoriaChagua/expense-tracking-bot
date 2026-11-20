@@ -1,4 +1,4 @@
-import type { NewTransaction, Transaction } from "./types";
+import type { NewTransaction, Totals, Transaction } from "./types";
 
 // ON CONFLICT only swallows operation_id duplicates; other constraint errors still throw.
 export async function insertTransaction(db: D1Database, tx: NewTransaction): Promise<"inserted" | "duplicate"> {
@@ -17,4 +17,19 @@ export async function deleteLastTransaction(db: D1Database): Promise<Transaction
   return db
     .prepare("DELETE FROM transactions WHERE id = (SELECT MAX(id) FROM transactions) RETURNING *")
     .first<Transaction>();
+}
+
+// from/to are Lima 'YYYY-MM-DD HH:MM'; that format sorts correctly as text.
+export async function getTotals(db: D1Database, from: string, to: string): Promise<Totals> {
+  const { results } = await db
+    .prepare(
+      `SELECT direction, SUM(amount_cents) AS cents, COUNT(*) AS count
+       FROM transactions WHERE occurred_at >= ? AND occurred_at <= ?
+       GROUP BY direction`,
+    )
+    .bind(from, to)
+    .all<{ direction: "expense" | "income"; cents: number; count: number }>();
+  const totals: Totals = { expense: { cents: 0, count: 0 }, income: { cents: 0, count: 0 } };
+  for (const r of results) totals[r.direction] = { cents: r.cents, count: r.count };
+  return totals;
 }

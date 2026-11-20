@@ -1,7 +1,7 @@
 import { Bot, type Context } from "grammy";
 import { Buffer } from "node:buffer";
-import { toLimaDateTime } from "./dates";
-import { deleteLastTransaction, insertTransaction } from "./db";
+import { rangeBounds, toLimaDateTime, type Range } from "./dates";
+import { deleteLastTransaction, getTotals, insertTransaction } from "./db";
 import { extractReceipt } from "./gemini";
 import { messages } from "./messages";
 import type { Env, NewTransaction } from "./types";
@@ -36,6 +36,11 @@ async function handleImage(ctx: Context, env: Env, fileId: string, mimeType: str
   return ctx.reply(result === "duplicate" ? messages.duplicate : messages.saved(tx));
 }
 
+async function handleSummary(ctx: Context, env: Env, range: Range) {
+  const { from, to } = rangeBounds(range);
+  return ctx.reply(messages.summary(range, from, to, await getTotals(env.DB, from, to)));
+}
+
 export function createBot(env: Env): Bot {
   const bot = new Bot(env.TELEGRAM_BOT_TOKEN);
 
@@ -51,6 +56,10 @@ export function createBot(env: Env): Bot {
   });
 
   safe.command("start", (ctx) => ctx.reply(messages.start));
+
+  safe.command("hoy", (ctx) => handleSummary(ctx, env, "today"));
+  safe.command("semana", (ctx) => handleSummary(ctx, env, "week"));
+  safe.command("mes", (ctx) => handleSummary(ctx, env, "month"));
 
   safe.command("deshacer", async (ctx) => {
     const deleted = await deleteLastTransaction(env.DB);
