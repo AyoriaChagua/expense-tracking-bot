@@ -1,6 +1,6 @@
 import { Bot, type Context } from "grammy";
 import { Buffer } from "node:buffer";
-import { rangeBounds, toLimaDateTime, type Range } from "./dates";
+import { rangeBounds, toLimaDateTime, withCurrentYear, type Range } from "./dates";
 import { deleteLastTransaction, getTotals, insertTransaction } from "./db";
 import { extractReceipt } from "./gemini";
 import { messages } from "./messages";
@@ -22,14 +22,17 @@ async function handleImage(ctx: Context, env: Env, fileId: string, mimeType: str
   if (!receipt.app || !receipt.direction) return ctx.reply(messages.noAppOrDirection);
 
   const occurredAt =
-    receipt.occurredAt && DATETIME_RE.test(receipt.occurredAt) ? receipt.occurredAt : toLimaDateTime(ctx.message!.date);
+    receipt.occurredAt && DATETIME_RE.test(receipt.occurredAt)
+      ? withCurrentYear(receipt.occurredAt)
+      : toLimaDateTime(ctx.message!.date);
   const tx: NewTransaction = {
     app: receipt.app,
     direction: receipt.direction,
     amount_cents: Math.round(receipt.amount * 100), // integer cents avoid float errors
     counterparty: receipt.counterparty,
     occurred_at: occurredAt.replace("T", " "),
-    operation_id: receipt.operationId,
+    // Gemini formats the same id inconsistently ("784.444.009.1795" vs "7844440091795"); keep only alphanumerics.
+    operation_id: receipt.operationId?.replace(/[^0-9A-Za-z]/g, "") || null,
     description: ctx.message?.caption?.trim() || null,
   };
   const result = await insertTransaction(env.DB, tx);

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { rangeBounds, toLimaDateTime } from "./dates.ts";
+import { rangeBounds, toLimaDateTime, withCurrentYear } from "./dates.ts";
 
 // 2026-11-20 03:00 UTC is Thursday 2026-11-19 22:00 in Lima.
 const thuNight = new Date("2026-11-20T03:00:00Z");
@@ -31,4 +31,20 @@ test("month uses Lima date when UTC is already next month", () => {
 
 test("Telegram unix date converts to Lima time", () => {
   assert.equal(toLimaDateTime(Date.UTC(2026, 10, 18, 3, 0) / 1000), "2026-11-17T22:00");
+});
+
+// 2026-11-21 02:00 UTC is 2026-11-20 21:00 in Lima.
+const friNight = new Date("2026-11-21T02:00:00Z");
+
+test("wrong year guessed by Gemini is replaced with the current Lima year", () => {
+  assert.equal(withCurrentYear("2024-11-20T08:34", friNight), "2026-11-20T08:34");
+});
+
+test("receipt dated after today belongs to last year", () => {
+  // Now is 2026-01-05 in Lima; a 28/12 receipt is from 2025.
+  assert.equal(withCurrentYear("2026-12-28T10:00", new Date("2026-01-05T15:00:00Z")), "2025-12-28T10:00");
+});
+
+test("same-day receipt slightly ahead of the server clock stays this year", () => {
+  assert.equal(withCurrentYear("2026-11-20T21:05", friNight), "2026-11-20T21:05");
 });
