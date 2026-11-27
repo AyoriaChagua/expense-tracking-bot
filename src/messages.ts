@@ -1,5 +1,5 @@
 import type { Range } from "./dates";
-import type { NewTransaction, Totals } from "./types";
+import type { CategoryTotal, NewTransaction, Totals } from "./types";
 
 // Every user-facing (Spanish) text lives here.
 export const messages = {
@@ -17,11 +17,15 @@ export const messages = {
   saved: (tx: NewTransaction) => `✅ ${formatTransaction(tx)}`,
   undone: (tx: NewTransaction) => `🗑️ Borré: ${formatTransaction(tx)}`,
   // -> '📊 Semana (16/11 – 20/11)\nEgresos: S/ 51.50 (2)\nIngresos: S/ 5.00 (1)'
-  summary: (range: Range, from: string, to: string, t: Totals) =>
+  // categories (week/month only) appends '\n\nPor categoría:\ncomida: S/ 30.00 (2)\n...'
+  summary: (range: Range, from: string, to: string, t: Totals, categories: CategoryTotal[] = []) =>
     [
       `📊 ${RANGE_LABEL[range]} (${range === "today" ? shortDate(to) : `${shortDate(from)} – ${shortDate(to)}`})`,
       `Egresos: S/ ${formatSoles(t.expense.cents)} (${t.expense.count})`,
       `Ingresos: S/ ${formatSoles(t.income.cents)} (${t.income.count})`,
+      ...(categories.length
+        ? ["", "Por categoría:", ...categories.map((c) => `${c.category ?? "sin categoría"}: S/ ${formatSoles(c.cents)} (${c.count})`)]
+        : []),
     ].join("\n"),
 };
 

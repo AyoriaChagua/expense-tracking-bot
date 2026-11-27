@@ -38,3 +38,9 @@ export interface Totals {
   expense: { cents: number; count: number };
   income: { cents: number; count: number };
 }
+
+export interface CategoryTotal {
+  category: string | null; // null = no description
+  cents: number;
+  count: number;
+}

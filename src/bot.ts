@@ -1,7 +1,7 @@
 import { Bot, type Context } from "grammy";
 import { Buffer } from "node:buffer";
 import { rangeBounds, toLimaDateTime, withCurrentYear, type Range } from "./dates";
-import { deleteLastTransaction, getTotals, insertTransaction } from "./db";
+import { deleteLastTransaction, getExpensesByCategory, getTotals, insertTransaction } from "./db";
 import { extractReceipt } from "./gemini";
 import { messages } from "./messages";
 import type { Env, NewTransaction } from "./types";
@@ -41,7 +41,11 @@ async function handleImage(ctx: Context, env: Env, fileId: string, mimeType: str
 
 async function handleSummary(ctx: Context, env: Env, range: Range) {
   const { from, to } = rangeBounds(range);
-  return ctx.reply(messages.summary(range, from, to, await getTotals(env.DB, from, to)));
+  const [totals, categories] = await Promise.all([
+    getTotals(env.DB, from, to),
+    range === "today" ? [] : getExpensesByCategory(env.DB, from, to),
+  ]);
+  return ctx.reply(messages.summary(range, from, to, totals, categories));
 }
 
 export function createBot(env: Env): Bot {
